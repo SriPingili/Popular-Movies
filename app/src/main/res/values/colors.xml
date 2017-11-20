@@ -4,4 +4,5 @@
     <color name="colorPrimaryDark">#000000</color>
     <color name="colorAccent">#FF4081</color>
     <color name="action_bar_text_color">#FFFFFF</color>
+    <color name="error_message_text_color">#312e2e</color>
 </resources>

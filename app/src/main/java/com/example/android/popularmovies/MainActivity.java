@@ -20,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android.popularmovies.adapter.CustomMovieAdapter;
 import com.example.android.popularmovies.data.FavoriteMoviesContract.FavoriteMovieEntry;
@@ -57,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
     protected GridView gridView;
     private TextView actionBarTextView;
     private CustomMovieAdapter customMovieAdapter;
-    private static String MOVIE_CATEGORY = "popular";
+    private static String MOVIE_CATEGORY = HelperUtil.POPULAR_MOVIES;
     private SQLiteDatabase sqLiteDatabase;
-
+    private static int positon = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,16 +70,19 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setCustomView(R.layout.action_bar_custom);
         actionBarTextView = getSupportActionBar().getCustomView().findViewById(R.id.action_bar_textview_id);
-
-        if(savedInstanceState!=null)
-        {
-            Log.v("saved","in oncreate");
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(HelperUtil.SCROLL_STATE_KEY)) {
+                positon = savedInstanceState.getInt(HelperUtil.SCROLL_STATE_KEY);
+            }
         }
-
-
         validateApiCalls();
     }
 
+    /*
+    * this method is central to the application and does the below things
+    *       1.determines if the call is to the top rated, popular or the favorite movies using the static MOVIE_CATEGORY constant
+    *       2.determines if the app is in offline mode or online and does the appropriate actions
+    * */
     private void validateApiCalls() {
         switch (MOVIE_CATEGORY) {
             case HelperUtil.TOP_RATED:
@@ -104,6 +106,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    * Helper method that queries for movies.
+    * This method helps to view the favorite movies and also helps to get the top rated
+    * and popular movies in offline mode.
+    * */
     private void queryForMovies(SQLiteOpenHelper sqLiteOpenHelper, final String[] columnDetails, final String tableName) {
         final ArrayList<Movie> movies = new ArrayList<>();
         sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
@@ -130,28 +137,6 @@ public class MainActivity extends AppCompatActivity {
                 errorMessageDisplay.setText(getString(R.string.internet_error_message));
         }
 
-    }
-
-    private void startIntentToMovieDetails(final ArrayList<Movie> movies) {
-        progressBar.setVisibility(View.INVISIBLE);
-        gridView.setVisibility(View.VISIBLE);
-        if (movies != null) {
-            showMovieDetails();
-            customMovieAdapter = new CustomMovieAdapter(MainActivity.this, movies);
-            gridView.setAdapter(customMovieAdapter);
-            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                    final Intent deatailsActivityIntent = new Intent(MainActivity.this, MovieDetailsActivity.class);
-                    deatailsActivityIntent.putExtra(Intent.EXTRA_TEXT, movies.get(position));
-                    deatailsActivityIntent.putExtra(getString(R.string.action_bar_title_key), actionBarTextView.getText().toString());
-                    startActivity(deatailsActivityIntent);
-
-                }
-            });
-        } else {
-            showErrorMessage();
-        }
     }
 
     /*
@@ -197,7 +182,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     /*
     * Async Task that does 2 things
@@ -245,7 +229,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-
         @Override
         protected void onPostExecute(final ArrayList<Movie> movies) {
             if (MOVIE_CATEGORY.equals(HelperUtil.POPULAR_MOVIES))
@@ -256,6 +239,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /*
+    * This helper method gets called from onPostExecuteMethod.
+    * This method attaches the movies data to the grid view and also handles the
+    * clicks on the grid items */
+    private void startIntentToMovieDetails(final ArrayList<Movie> movies) {
+        progressBar.setVisibility(View.INVISIBLE);
+        gridView.setVisibility(View.VISIBLE);
+        if (movies != null) {
+            showMovieDetails();
+            customMovieAdapter = new CustomMovieAdapter(MainActivity.this, movies);
+            gridView.setAdapter(customMovieAdapter);
+            gridView.setSelection(positon);
+            gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                    final Intent deatailsActivityIntent = new Intent(MainActivity.this, MovieDetailsActivity.class);
+                    deatailsActivityIntent.putExtra(Intent.EXTRA_TEXT, movies.get(position));
+                    deatailsActivityIntent.putExtra(getString(R.string.action_bar_title_key), actionBarTextView.getText().toString());
+                    startActivity(deatailsActivityIntent);
+
+                }
+            });
+        } else {
+            showErrorMessage();
+        }
+    }
+
+    /*
+    * This helper method gets called from the onPostExecute() of the Async task
+    * This method inserts movie data into the respective movie tables to support the offline mode
+    * */
     private void insertDataToMoviesTable(final SQLiteOpenHelper sqLiteOpenHelper, final ArrayList<Movie> movies, String[] movieTableColumnNames, final String movieTableName) {
         sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
         for (Movie movie : movies) {
@@ -272,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
 
     /*
     * Helper method that displays the grid view and hides the error text view
-    *
     * Used Sunshine app as the reference for this part
     */
     private void showMovieDetails() {
@@ -282,7 +295,6 @@ public class MainActivity extends AppCompatActivity {
 
     /*
    * Helper method that displays the error message and hides the grid view
-   *
    * Used Sunshine app as the reference for this part
    */
     private void showErrorMessage() {
@@ -290,12 +302,12 @@ public class MainActivity extends AppCompatActivity {
         errorMessageDisplay.setVisibility(View.VISIBLE);
     }
 
-//TODO schedule a meeting with mentor, ask why onSaveInsatnce state is always null
+    /*
+    * saves the scroll postion of the grid view on screen rotation
+    * */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        Log.v("lifeCycle", "onSaveInstance");
-        Log.v("lifeCycle CATEGORY",MOVIE_CATEGORY);
-        outState.putString("key",MOVIE_CATEGORY);
+        outState.putInt(HelperUtil.SCROLL_STATE_KEY, gridView.getFirstVisiblePosition());
         super.onSaveInstanceState(outState);
     }
 }

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scroll_view_id"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.example.android.popularmovies.MovieDetailsActivity">
 
     <LinearLayout
@@ -12,91 +14,67 @@
 
         <TextView
             android:id="@+id/details_title_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:text="@string/movie_title_heading"
-            android:paddingLeft="20dp"
-            android:textSize="40sp"
-            android:textColor="#FFFF"
-            android:background="#077c4d"/>
+            style="@style/MovieTitleStyle"
+            tools:text="@string/movie_title_heading" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingLeft="25dp">
+            android:layout_margin="10dp"
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/details_thumbnail_id"
                 android:layout_width="150dp"
                 android:layout_height="200dp"
                 android:layout_gravity="center"
-                android:layout_marginTop="2dp"
-                tools:background="@drawable/movies_icon"/>
+                tools:background="@drawable/movies_icon" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
                 android:orientation="vertical"
-                android:paddingRight="10dp"
-                android:layout_marginLeft="10dp">
+                android:paddingRight="10dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="25dp"
-                    android:orientation="horizontal"
-                    >
+                <LinearLayout style="@style/LinearLayoutStyle">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/TextViewForReleaseRating"
                         android:text="@string/release_date_heading"
-                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/details_release_date_id"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/TextViewForReleaseRating"
                         android:layout_marginLeft="5dp"
-                        android:textSize="20sp"
                         tools:text="date" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="25dp"
-                   >
+                <LinearLayout style="@style/LinearLayoutStyle">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/TextViewForReleaseRating"
                         android:text="@string/user_rating_heading"
-                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/details_user_rating_id"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        style="@style/TextViewForReleaseRating"
                         android:layout_marginLeft="5dp"
-                        android:textSize="20sp"
                         tools:text="Rating" />
                 </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="25dp">
+
+                <LinearLayout style="@style/LinearLayoutStyle">
+
                     <ToggleButton
                         android:id="@+id/favourites_button_id"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="#077c4d"
-                        android:textOn="click to remove from favorites"
-                        android:textOff="click to save to favorites!!"
-                        android:checked="false"/>
+                        android:checked="false"
+                        android:textOff="@string/click_to_save_to_favorites"
+                        android:textOn="@string/click_to_remove_from_favorites" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -105,58 +83,40 @@
             android:id="@+id/details_overview_id"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:textSize="18sp"
             tools:text="details thumbnail iddetails thumbnail idde tails thumbnail id details thumbnail iddetails thumbnail idde tails thumbnail_id" />
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:background="@android:color/darker_gray"/>
+
+        <View style="@style/ViewSeparatorStyle" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Trailers"
-            android:textSize="20sp"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:textStyle="bold"/>
+            style="@style/TextViewStylesForTrailersReviews"
+            android:text="Trailers" />
+
         <android.support.v7.widget.RecyclerView
             android:id="@+id/trailer_recycler_view_id"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="10dp"
-            />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:background="@android:color/darker_gray"/>
+            style="@style/RecyclerViewStyles" />
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Reviews"
-            android:textSize="20sp"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="10dp"
-            android:textStyle="bold"/>
+            android:id="@+id/trailer_data_error_text_view"
+            style="@style/ErrorTextViewStyles"
+            android:text="@string/internet_error_message" />
+
+        <View style="@style/ViewSeparatorStyle" />
+
+        <TextView
+            style="@style/TextViewStylesForTrailersReviews"
+            android:text="Reviews" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/review_recycler_view_id"
-            android:layout_width="match_parent"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="10dp"
-            android:layout_height="100dp"/>
+            style="@style/RecyclerViewStyles" />
 
+        <TextView
+            android:id="@+id/review_data_error_text_view"
+            style="@style/ErrorTextViewStyles"
+            android:text="@string/internet_error_message" />
     </LinearLayout>
-</android.support.v4.widget.NestedScrollView>
+</ScrollView>

@@ -1,32 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <GridView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/movie_details_grid_id"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:numColumns="auto_fit"
-        android:verticalSpacing="0dp"
         android:horizontalSpacing="0dp"
-
-
-        android:stretchMode="columnWidth"/>
+        android:numColumns="auto_fit"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="0dp" />
 
     <TextView
         android:id="@+id/error_message_display"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/error_message"
-        tools:text="king is dbsd"
-        android:textColor="#312e2e"
-        android:layout_gravity="center"
-        android:fontFamily="sans-serif-condensed"
-        android:textSize="20sp"
-        android:visibility="invisible" />
+        style="@style/ErrorTextViewStyles"
+        android:text="@string/error_message" />
 
     <ProgressBar
         android:id="@+id/progress_bar_id"
