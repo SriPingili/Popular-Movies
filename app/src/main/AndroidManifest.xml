@@ -20,9 +20,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MovieDetailsActivity"
-            android:parentActivityName="com.example.android.popularmovies.MainActivity" >
-        </activity>
+        <activity
+            android:name=".MovieDetailsActivity"
+            android:parentActivityName="com.example.android.popularmovies.MainActivity"></activity>
+
+        <provider
+            android:name="com.example.android.popularmovies.data.MovieContentProvider"
+            android:authorities="com.example.android.popularmovies"
+            android:exported="false" />
     </application>
 
 </manifest>

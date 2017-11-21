@@ -5,14 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,11 +21,8 @@ import android.widget.TextView;
 
 import com.example.android.popularmovies.adapter.CustomMovieAdapter;
 import com.example.android.popularmovies.data.FavoriteMoviesContract.FavoriteMovieEntry;
-import com.example.android.popularmovies.data.FavoriteMoviesDbHelper;
 import com.example.android.popularmovies.data.PopularMoviesContract.PopularMoviesEntry;
-import com.example.android.popularmovies.data.PopularMoviesDbHelper;
 import com.example.android.popularmovies.data.TopRatedMoviesContract.TopRatedMoviesEntry;
-import com.example.android.popularmovies.data.TopRatedMoviesDbHelper;
 import com.example.android.popularmovies.model.Movie;
 import com.example.android.popularmovies.util.HelperUtil;
 import com.example.android.popularmovies.utilities.NetworkUtils;
@@ -90,18 +85,18 @@ public class MainActivity extends AppCompatActivity {
                 if (checkNetworkConnectivity())
                     new FetchMovieData().execute(HelperUtil.MOVIE_DB_URL_TOP_RATED + HelperUtil.getApiKey(this));
                 else
-                    queryForMovies(new TopRatedMoviesDbHelper(this), HelperUtil.getTopRatedMovieColumns(), TopRatedMoviesEntry.TABLE_NAME);
+                    queryForMovies(HelperUtil.getTopRatedMovieColumns(), TopRatedMoviesEntry.TABLE_NAME);
                 break;
             case HelperUtil.FAVORITE_MOVIES:
                 actionBarTextView.setText(R.string.favorite_movies_action_bar);
-                queryForMovies(new FavoriteMoviesDbHelper(this), HelperUtil.getFavoriteMovieColumns(), FavoriteMovieEntry.TABLE_NAME);
+                queryForMovies(HelperUtil.getFavoriteMovieColumns(), FavoriteMovieEntry.TABLE_NAME);
                 break;
             default:
                 actionBarTextView.setText(R.string.popular_movies_action_bar);
                 if (checkNetworkConnectivity())
                     new FetchMovieData().execute(HelperUtil.MOVIE_DB_URL_POPULAR + HelperUtil.getApiKey(this));
                 else
-                    queryForMovies(new PopularMoviesDbHelper(this), HelperUtil.getPopularMovieColumns(), PopularMoviesEntry.TABLE_NAME);
+                    queryForMovies(HelperUtil.getPopularMovieColumns(), PopularMoviesEntry.TABLE_NAME);
                 break;
         }
     }
@@ -111,10 +106,23 @@ public class MainActivity extends AppCompatActivity {
     * This method helps to view the favorite movies and also helps to get the top rated
     * and popular movies in offline mode.
     * */
-    private void queryForMovies(SQLiteOpenHelper sqLiteOpenHelper, final String[] columnDetails, final String tableName) {
+    private void queryForMovies(final String[] columnDetails, final String tableName) {
+        Cursor cursor;
+        if (tableName.equals(FavoriteMovieEntry.TABLE_NAME))
+            cursor = getContentResolver().query(FavoriteMovieEntry.CONTENT_URI, null, null, null, columnDetails[0]);
+        else if (tableName.equals(PopularMoviesEntry.TABLE_NAME))
+            cursor = getContentResolver().query(PopularMoviesEntry.POPULAR_MOVIES_CONTENT_URI, null, null, null, columnDetails[0]);
+        else
+            cursor = getContentResolver().query(TopRatedMoviesEntry.TOP_MOVIES_CONTENT_URI, null, null, null, columnDetails[0]);
+
+        loadCursorDataAndStartIntent(cursor, columnDetails);
+    }
+
+    /*
+    * Helper method that loads the cursor data
+    * */
+    private void loadCursorDataAndStartIntent(final Cursor cursor, final String[] columnDetails) {
         final ArrayList<Movie> movies = new ArrayList<>();
-        sqLiteDatabase = sqLiteOpenHelper.getReadableDatabase();
-        final Cursor cursor = sqLiteDatabase.query(tableName, null, null, null, null, null, columnDetails[0]);
         if (cursor.moveToFirst()) {
             do {
                 String movieTitle = cursor.getString(cursor.getColumnIndex(columnDetails[0]));
@@ -136,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             else
                 errorMessageDisplay.setText(getString(R.string.internet_error_message));
         }
-
     }
 
     /*
@@ -232,9 +239,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(final ArrayList<Movie> movies) {
             if (MOVIE_CATEGORY.equals(HelperUtil.POPULAR_MOVIES))
-                insertDataToMoviesTable(new PopularMoviesDbHelper(MainActivity.this), movies, HelperUtil.getPopularMovieColumns(), PopularMoviesEntry.TABLE_NAME);
+                insertDataToMoviesTable(movies, HelperUtil.getPopularMovieColumns(), PopularMoviesEntry.TABLE_NAME);
             if (MOVIE_CATEGORY.equals(HelperUtil.TOP_RATED))
-                insertDataToMoviesTable(new TopRatedMoviesDbHelper(MainActivity.this), movies, HelperUtil.getTopRatedMovieColumns(), TopRatedMoviesEntry.TABLE_NAME);
+                insertDataToMoviesTable(movies, HelperUtil.getTopRatedMovieColumns(), TopRatedMoviesEntry.TABLE_NAME);
             startIntentToMovieDetails(movies);
         }
     }
@@ -270,18 +277,22 @@ public class MainActivity extends AppCompatActivity {
     * This helper method gets called from the onPostExecute() of the Async task
     * This method inserts movie data into the respective movie tables to support the offline mode
     * */
-    private void insertDataToMoviesTable(final SQLiteOpenHelper sqLiteOpenHelper, final ArrayList<Movie> movies, String[] movieTableColumnNames, final String movieTableName) {
-        sqLiteDatabase = sqLiteOpenHelper.getWritableDatabase();
-        for (Movie movie : movies) {
+    private void insertDataToMoviesTable(final ArrayList<Movie> movies, String[] movieTableColumnNames, final String movieTableName) {
+        ContentValues[] contentValues = new ContentValues[movies.size()];
+        for (int i = 0; i < movies.size(); i++) {
             ContentValues cv = new ContentValues();
-            cv.put(movieTableColumnNames[0], movie.getMovieTitle());
-            cv.put(movieTableColumnNames[1], movie.getMoviePosterUrl());
-            cv.put(movieTableColumnNames[2], movie.getMovieOverView());
-            cv.put(movieTableColumnNames[3], movie.getMovieReleaseDate());
-            cv.put(movieTableColumnNames[4], movie.getMovieUserRating());
-            cv.put(movieTableColumnNames[5], movie.getMovieId());
-            sqLiteDatabase.insert(movieTableName, null, cv);
+            cv.put(movieTableColumnNames[0], movies.get(i).getMovieTitle());
+            cv.put(movieTableColumnNames[1], movies.get(i).getMoviePosterUrl());
+            cv.put(movieTableColumnNames[2], movies.get(i).getMovieOverView());
+            cv.put(movieTableColumnNames[3], movies.get(i).getMovieReleaseDate());
+            cv.put(movieTableColumnNames[4], movies.get(i).getMovieUserRating());
+            cv.put(movieTableColumnNames[5], movies.get(i).getMovieId());
+            contentValues[i] = cv;
         }
+        if (movieTableName.equals(PopularMoviesEntry.TABLE_NAME))
+            getContentResolver().bulkInsert(PopularMoviesEntry.POPULAR_MOVIES_CONTENT_URI, contentValues);
+        if (movieTableName.equals(TopRatedMoviesEntry.TABLE_NAME))
+            getContentResolver().bulkInsert(TopRatedMoviesEntry.TOP_MOVIES_CONTENT_URI, contentValues);
     }
 
     /*

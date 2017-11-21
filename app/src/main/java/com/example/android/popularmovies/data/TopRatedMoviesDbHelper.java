@@ -7,9 +7,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.example.android.popularmovies.data.TopRatedMoviesContract.TopRatedMoviesEntry;
 
 /**
- * Created by sp051821 on 11/18/17.
+ * SQLiteOpenHelper class for the Top rated movies table
  */
-
 public class TopRatedMoviesDbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "toprated.db";
     private static final int DATABASE_VERSION = 1;

@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -47,9 +48,7 @@ import butterknife.ButterKnife;
  * vote count and movie poster
  */
 public class MovieDetailsActivity extends AppCompatActivity {
-
     private Movie movie;
-
     @BindView(R.id.details_title_id)
     protected TextView titleTextView;
     @BindView(R.id.details_thumbnail_id)
@@ -106,18 +105,20 @@ public class MovieDetailsActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                 if (isChecked) {
-                    ContentValues cv = new ContentValues();
+                    final ContentValues cv = new ContentValues();
                     cv.put(FavoriteMovieEntry.COLUMN_MOVIE_ID, movie.getMovieId());
                     cv.put(FavoriteMovieEntry.COLUMN_MOVIE_TITLE, movie.getMovieTitle());
                     cv.put(FavoriteMovieEntry.COLUMN_POSTER_URL, movie.getMoviePosterUrl());
                     cv.put(FavoriteMovieEntry.COLUMN_OVERVIEW, movie.getMovieOverView());
                     cv.put(FavoriteMovieEntry.COLUMN_RELEASE_DATE, movie.getMovieReleaseDate());
                     cv.put(FavoriteMovieEntry.COLUMN_USER_RATING, movie.getMovieUserRating());
-                    long result = mDb.insert(FavoriteMovieEntry.TABLE_NAME, null, cv);
-                    if (result == movie.getMovieId())
+                    Uri uri = getContentResolver().insert(FavoriteMovieEntry.CONTENT_URI, cv);
+                    if (uri != null)
                         Toast.makeText(MovieDetailsActivity.this, R.string.added_to_favorites_message, Toast.LENGTH_LONG).show();
                 } else {
-                    final int result = mDb.delete(FavoriteMovieEntry.TABLE_NAME, FavoriteMovieEntry.COLUMN_MOVIE_ID + "=" + movie.getMovieId(), null);
+                    final String id = String.valueOf(movie.getMovieId());
+                    final Uri uri = FavoriteMovieEntry.CONTENT_URI.buildUpon().appendPath(id).build();
+                    final int result = getContentResolver().delete(uri, null, null);
                     if (result > 0)
                         Toast.makeText(MovieDetailsActivity.this, R.string.removed_from_favorites_message, Toast.LENGTH_LONG).show();
                 }
@@ -136,7 +137,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         overviewTextView.setText(movie.getMovieOverView());
         releaseDateTextView.setText(movie.getMovieReleaseDate());
         userRatingTextView.setText(movie.getMovieUserRating() + "");
-        scrollView.smoothScrollTo(0,0);
+        scrollView.smoothScrollTo(0, 0);
     }
 
     /*
